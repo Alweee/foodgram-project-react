@@ -1,0 +1,4 @@
+django==3.2.15
+flake8==5.0.4
+python-dotenv==0.21.0
+psycopg2-binary==2.8.6
