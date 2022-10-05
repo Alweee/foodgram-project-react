@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from djoser.views import UserViewSet
+from models import User
 
-# Create your views here.
+
+class CustomUserViewSet(UserViewSet):
+    def get_queryset(self):
+        queryset = User.objects.all()
+        return queryset
