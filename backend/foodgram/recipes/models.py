@@ -3,9 +3,9 @@ from django.db import models
 from users.models import User
 from recipes.utils import user_directory_path
 
+
 class Ingredient(models.Model):
     name = models.CharField(max_length=150)
-    amount = models.IntegerField()
     measurement_unit = models.CharField(max_length=100)
 
     def __str__(self):
@@ -24,6 +24,7 @@ class Tag(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
+        related_name='recipes',
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=150)
@@ -31,6 +32,26 @@ class Recipe(models.Model):
     text = models.TextField()
     ingredients = models.ManyToManyField(
         Ingredient,
-        trough='IngredientRecipe'
+        through='IngredientRecipe'
     )
-    tags = models.
+    tags = models.ManyToManyField(
+        Tag,
+        through='TagRecipe'
+    )
+    cooking_time = models.IntegerField()
+
+
+class IngredientRecipe(models.Model):
+    ingredient_id = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.ingredient_id.name} {self.recipe_id.name}'
+
+
+class TagRecipe(models.Model):
+    tag_id = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.tag_id.name} {self.recipe_id.name}'
