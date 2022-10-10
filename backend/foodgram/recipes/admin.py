@@ -4,11 +4,15 @@ from recipes.models import Recipe, Ingredient, Tag
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'author')
+    list_filter = ('author', 'name', 'tags')
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'measurement_unit')
+    list_filter = ('name',)
+    search_fields = ('name',)
+    ordering = ('name',)
 
 
 class TagAdmin(admin.ModelAdmin):
