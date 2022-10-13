@@ -11,6 +11,7 @@ from drf_yasg import openapi
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('users.urls')),
+    path('api/', include('recipes.urls')),
 ]
 
 schema_view = get_schema_view(

@@ -8,7 +8,8 @@ from rest_framework.response import Response
 
 from users.pagination import CustomPagination
 from users.models import User, Subscription
-from users.serializers import CustomUserSerializer, UserSubscribeSerializer
+from users.serializers import (CustomUserSerializer, UserSubscribeSerializer,
+                               FollowListSerializer)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -26,7 +27,7 @@ class FollowingList(APIView):
     def get(self, request):
         user = get_object_or_404(User, pk=request.user.pk)
         queryset = user.follower.all()
-        serializer = CustomUserSerializer(queryset, many=True)
+        serializer = FollowListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -1,16 +1,14 @@
 {
-    "version": "0.2.0",
     "configurations": [
         {
             "name": "Python: Django",
-            "python": "C:\\Users\\sasha\\Dev\\foodgram-project-react\\venv\\Scripts\\python",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\backend\\foodgram\\manage.py",
-            "console":"internalConsole",
-            "args": ["runserver"],
-            "django": true,
-            "justMyCode": true
+            "args": [
+                "runserver"
+            ],
+            "django": true
         }
     ]
 }

@@ -1,6 +1,9 @@
 from djoser.serializers import (UserCreateSerializer, TokenCreateSerializer,
                                 UserSerializer)
-from users.models import User
+
+from rest_framework import serializers
+
+from users.models import User, Subscription
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -25,8 +28,17 @@ class CustomUserSerializer(UserSerializer):
 
 
 class UserSubscribeSerializer(UserSerializer):
+    # recipes = # здесь позже будет поле объекта рецепт
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name')
+
+
+class FollowListSerializer(serializers.ModelSerializer):
+    following = UserSubscribeSerializer()
+
+    class Meta:
+        model = Subscription
+        fields = ('following',)
