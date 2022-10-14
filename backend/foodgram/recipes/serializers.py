@@ -5,7 +5,8 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import (Tag, Ingredient, Recipe,
-                            TagRecipe, IngredientRecipe)
+                            TagRecipe, IngredientRecipe,
+                            Amount, IngredientAmount)
 from users.serializers import CustomUserSerializer
 
 
@@ -32,19 +33,8 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class Ingredient2Serializer(serializers.ModelSerializer):
-    amount = serializers.IntegerField(min_value=1)  # тут закончил
-
-    class Meta:
-        model = Ingredient
-        fields = ('id', 'amount')
-
-    def get_amount(self, object):
-        return
-
-
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = Ingredient2Serializer(many=True)
+    ingredients = AmountSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(many=True,
                                               queryset=Tag.objects.all())
     image = Base64ImageField()
@@ -65,9 +55,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 tag=tag, recipe=recipe
             )
         for ingredient in ingredients:
-            IngredientRecipe.objects.create(
-                ingredient=ingredient, recipe=recipe  # тут ошибка
-            )
+            pass
         return recipe
 
     def update(self, instance, validated_data):
@@ -84,8 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             current_tag = Tag.objects.get(pk=tag.pk)
             taglst.append(current_tag)
         for ingredient in ingredients_data:
-            current_ingredient = Ingredient.objects.get(**ingredient)
-            inglst.append(current_ingredient)
+            pass
         instance.tags.set(taglst)
         instance.ingredients.set(inglst)
         instance.save()
@@ -96,7 +83,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(many=True,
                                               queryset=Tag.objects.all())
     author = CustomUserSerializer()
-    ingredients = Ingredient2Serializer(many=True)
+    ingredients = AmountSerializer(many=True)
     image = Base64ImageField()
 
     class Meta:

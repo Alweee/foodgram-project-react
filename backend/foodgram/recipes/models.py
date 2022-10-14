@@ -4,9 +4,20 @@ from users.models import User
 from recipes.utils import user_directory_path
 
 
+class Amount(models.Model):
+    amount = models.IntegerField()
+
+    def __str__(self):
+        return self.amount
+
+
 class Ingredient(models.Model):
     name = models.CharField(max_length=150)
     measurement_unit = models.CharField(max_length=100)
+    amount = models.ManyToManyField(
+        Amount,
+        through='IngredientAmount',
+    )
 
     def __str__(self):
         return self.name
@@ -21,6 +32,14 @@ class Tag(models.Model):
         return self.name
 
 
+class IngredientAmount(models.Model):
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+
+    def __str__(self):
+        return f'{self.ingredient} {self.amount}'
+
+
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
@@ -31,8 +50,7 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to=user_directory_path)
     text = models.TextField()
     ingredients = models.ManyToManyField(
-        Ingredient,
-        through='IngredientRecipe'
+        IngredientAmount
     )
     tags = models.ManyToManyField(
         Tag,
