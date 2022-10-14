@@ -42,16 +42,16 @@ class Recipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
-    ingredient_id = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.ingredient_id.name} {self.recipe_id.name}'
+        return f'{self.ingredient.name} {self.recipe.name}'
 
 
 class TagRecipe(models.Model):
-    tag_id = models.ForeignKey(Tag, on_delete=models.CASCADE)
-    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.tag_id.name} {self.recipe_id.name}'
+        return f'{self.tag.name} {self.recipe.name}'

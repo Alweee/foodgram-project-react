@@ -37,7 +37,7 @@ class RetrieveIngredient(APIView):
 
 class ApiRecipe(APIView):
     def post(self, request):
-        serializer = RecipeSerializer(request.data)
+        serializer = RecipeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
