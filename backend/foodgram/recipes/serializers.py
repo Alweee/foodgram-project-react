@@ -5,8 +5,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import (Tag, Ingredient, Recipe,
-                            TagRecipe, IngredientRecipe,
-                            Amount, IngredientAmount)
+                            TagRecipe, IngredientAmount)
 from users.serializers import CustomUserSerializer
 
 
@@ -24,6 +23,16 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
+
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'amount')
+
+
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
@@ -34,15 +43,18 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = AmountSerializer(many=True)
-    tags = serializers.PrimaryKeyRelatedField(many=True,
-                                              queryset=Tag.objects.all())
+    ingredients = IngredientAmountSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
     image = Base64ImageField()
+    author = CustomUserSerializer(required=False)
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image', 'name',
-                  'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients', 'name',
+                  'image', 'text', 'cooking_time')
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
@@ -55,7 +67,10 @@ class RecipeSerializer(serializers.ModelSerializer):
                 tag=tag, recipe=recipe
             )
         for ingredient in ingredients:
-            pass
+            ingr = Ingredient.objects.get(id=ingredient['id'])
+            IngredientAmount.objects.create(
+                ingredient=ingr, amount=ingredient['amount']
+            )
         return recipe
 
     def update(self, instance, validated_data):
@@ -72,21 +87,12 @@ class RecipeSerializer(serializers.ModelSerializer):
             current_tag = Tag.objects.get(pk=tag.pk)
             taglst.append(current_tag)
         for ingredient in ingredients_data:
-            pass
+            ingr = Ingredient.objects.get(id=ingredient['id'])
+            current_ingredient = IngredientAmount.objects.get_or_create(
+                ingredient=ingr, amount=ingredient['amount']
+            )
+            inglst.append(current_ingredient)
         instance.tags.set(taglst)
         instance.ingredients.set(inglst)
         instance.save()
         return instance
-
-
-class RecipeReadSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(many=True,
-                                              queryset=Tag.objects.all())
-    author = CustomUserSerializer()
-    ingredients = AmountSerializer(many=True)
-    image = Base64ImageField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time')

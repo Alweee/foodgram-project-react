@@ -4,25 +4,6 @@ from users.models import User
 from recipes.utils import user_directory_path
 
 
-class Amount(models.Model):
-    amount = models.IntegerField()
-
-    def __str__(self):
-        return self.amount
-
-
-class Ingredient(models.Model):
-    name = models.CharField(max_length=150)
-    measurement_unit = models.CharField(max_length=100)
-    amount = models.ManyToManyField(
-        Amount,
-        through='IngredientAmount',
-    )
-
-    def __str__(self):
-        return self.name
-
-
 class Tag(models.Model):
     name = models.CharField(max_length=150)
     color = models.CharField(max_length=30)
@@ -32,8 +13,20 @@ class Tag(models.Model):
         return self.name
 
 
+class Ingredient(models.Model):
+    name = models.CharField(max_length=150)
+    measurement_unit = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class IngredientAmount(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(
+        Ingredient,
+        related_name='ingredients',
+        on_delete=models.CASCADE
+    )
     amount = models.IntegerField()
 
     def __str__(self):
@@ -57,14 +50,6 @@ class Recipe(models.Model):
         through='TagRecipe'
     )
     cooking_time = models.IntegerField()
-
-
-class IngredientRecipe(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.ingredient.name} {self.recipe.name}'
 
 
 class TagRecipe(models.Model):
