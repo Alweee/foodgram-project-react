@@ -8,8 +8,8 @@ from rest_framework.response import Response
 
 from users.pagination import CustomPagination
 from users.models import User, Subscription
-from users.serializers import (CustomUserSerializer, UserSubscribeSerializer,
-                               FollowListSerializer)
+from users.serializers import (CustomUserSerializer, FollowSerializer,
+                               FollowReadSerializer)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -25,16 +25,16 @@ class CustomUserViewSet(UserViewSet):
 
 class FollowingList(APIView):
     def get(self, request):
-        user = get_object_or_404(User, pk=request.user.pk)
-        queryset = user.follower.all()
-        serializer = FollowListSerializer(queryset, many=True)
+        current_user = get_object_or_404(User, pk=request.user.pk)
+        queryset = current_user.follower.all()
+        serializer = FollowReadSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SubscribeApiView(APIView):
     def post(self, request, pk):
         author = get_object_or_404(User, pk=pk)
-        serializer = UserSubscribeSerializer(author)
+        serializer = FollowSerializer(author)
         Subscription.objects.create(user=request.user, following=author)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

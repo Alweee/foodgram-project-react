@@ -1,7 +1,7 @@
 from django.urls import path
 
 from recipes.views import (ListTags, RetrieveTag, ListIngredients,
-                           RetrieveIngredient, ApiRecipe)
+                           RetrieveIngredient, ApiRecipe, ApiRecipeDetail)
 
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path('ingredients/', ListIngredients.as_view()),
     path('ingredients/<int:pk>/', RetrieveIngredient.as_view()),
     path('recipes/', ApiRecipe.as_view()),
+    path('recipes/<int:pk>/', ApiRecipeDetail.as_view()),
 ]

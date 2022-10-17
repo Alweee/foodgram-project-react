@@ -43,13 +43,28 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to=user_directory_path)
     text = models.TextField()
     ingredients = models.ManyToManyField(
-        IngredientAmount
+        IngredientAmount,
+        through='RecipeIngredientAmount'
     )
     tags = models.ManyToManyField(
         Tag,
         through='TagRecipe'
     )
     cooking_time = models.IntegerField()
+
+
+class RecipeIngredientAmount(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+    ingredientamount = models.ForeignKey(
+        IngredientAmount,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f'{self.recipe} {self.ingredientamount}'
 
 
 class TagRecipe(models.Model):

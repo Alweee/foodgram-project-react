@@ -27,8 +27,7 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name')
 
 
-class UserSubscribeSerializer(UserSerializer):
-    # recipes = # здесь позже будет поле объекта рецепт
+class FollowSerializer(UserSerializer):
 
     class Meta:
         model = User
@@ -36,9 +35,9 @@ class UserSubscribeSerializer(UserSerializer):
                   'first_name', 'last_name')
 
 
-class FollowListSerializer(serializers.ModelSerializer):
-    following = UserSubscribeSerializer()
+class FollowReadSerializer(serializers.ModelSerializer):
+    following = CustomUserSerializer()
 
     class Meta:
-        model = Subscription
+        model = User
         fields = ('following',)

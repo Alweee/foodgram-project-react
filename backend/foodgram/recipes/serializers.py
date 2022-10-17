@@ -5,7 +5,8 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import (Tag, Ingredient, Recipe,
-                            TagRecipe, IngredientAmount)
+                            TagRecipe, IngredientAmount,
+                            RecipeIngredientAmount)
 from users.serializers import CustomUserSerializer
 
 
@@ -24,13 +25,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all()
-    )
 
     class Meta:
         model = IngredientAmount
-        fields = ('id', 'amount')
+        fields = ('ingredient', 'amount')
 
 
 class Base64ImageField(serializers.ImageField):
@@ -66,33 +64,46 @@ class RecipeSerializer(serializers.ModelSerializer):
             TagRecipe.objects.create(
                 tag=tag, recipe=recipe
             )
+
         for ingredient in ingredients:
-            ingr = Ingredient.objects.get(id=ingredient['id'])
-            IngredientAmount.objects.create(
-                ingredient=ingr, amount=ingredient['amount']
+            ingt = Ingredient.objects.get(id=ingredient['ingredient'].id)
+            ingrt_amount = IngredientAmount.objects.create(
+                ingredient=ingt, amount=ingredient['amount']
             )
+            RecipeIngredientAmount.objects.create(
+                recipe=recipe, ingredientamount=ingrt_amount
+            )
+
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data('cooking_time',
-                                               instance.cooking_time)
+        instance.image = validated_data.get('image')
+        instance.name = validated_data.get('name')
+        instance.text = validated_data.get('text')
+        instance.cooking_time = validated_data.get('cooking_time')
 
         tags_data = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
-        taglst, inglst = [], []
+        tag_lst, ingt_amount_lst = [], []
+
+        recipe = Recipe.objects.get(id=instance.id)
+
         for tag in tags_data:
             current_tag = Tag.objects.get(pk=tag.pk)
-            taglst.append(current_tag)
+            tag_lst.append(current_tag)
+
         for ingredient in ingredients_data:
-            ingr = Ingredient.objects.get(id=ingredient['id'])
-            current_ingredient = IngredientAmount.objects.get_or_create(
-                ingredient=ingr, amount=ingredient['amount']
+            ingt = Ingredient.objects.get(id=ingredient['ingredient'].id)
+            ingt_amount, _ = IngredientAmount.objects.get_or_create(
+                ingredient=ingt, amount=ingredient['amount']
             )
-            inglst.append(current_ingredient)
-        instance.tags.set(taglst)
-        instance.ingredients.set(inglst)
+            RecipeIngredientAmount.objects.get_or_create(
+                recipe=recipe, ingredientamount=ingt_amount)
+            ingt_amount_lst.append(ingt_amount)
+
+        instance.tags.set(tag_lst)
+        instance.ingredients.set(ingt_amount_lst)
+
         instance.save()
+
         return instance
