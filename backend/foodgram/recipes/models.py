@@ -1,75 +1,138 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from users.models import User
 from recipes.utils import user_directory_path
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=150)
-    color = models.CharField(max_length=30)
-    slug = models.SlugField(max_length=50)
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Tag name'
+    )
+    color = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name='Tag color',
+        help_text='String in HEX format'
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        verbose_name='Tag slug'
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = 'tags'
 
     def __str__(self):
         return self.name
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=150)
-    measurement_unit = models.CharField(max_length=100)
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Ingredient name'
+    )
+    measurement_unit = models.CharField(
+        max_length=50,
+        verbose_name='Ingredient  measurement_unit',
+    )
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = 'ingredients'
 
     def __str__(self):
         return self.name
-
-
-class IngredientAmount(models.Model):
-    ingredient = models.ForeignKey(
-        Ingredient,
-        related_name='ingredients',
-        on_delete=models.CASCADE
-    )
-    amount = models.IntegerField()
-
-    def __str__(self):
-        return f'{self.ingredient} {self.amount}'
 
 
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         related_name='recipes',
-        on_delete=models.CASCADE,
+        on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=150)
-    image = models.ImageField(upload_to=user_directory_path)
-    text = models.TextField()
+    name = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name='recipe name'
+    )
+    image = models.ImageField(
+        upload_to=user_directory_path,
+        verbose_name='recipe image'
+    )
+    text = models.TextField(
+        verbose_name='recipe description'
+    )
     ingredients = models.ManyToManyField(
-        IngredientAmount,
-        through='RecipeIngredientAmount'
+        Ingredient,
+        through='RecipeIngredient',
+        verbose_name='recipe ingredients'
     )
     tags = models.ManyToManyField(
         Tag,
-        through='TagRecipe'
+        through='RecipeTag',
+        verbose_name='recipe tags'
     )
-    cooking_time = models.IntegerField()
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1, 'min cooking time in minutes'),
+            MaxValueValidator(1440, 'max cooking time in minutes')
+        ],
+        verbose_name='cooking_time in minutes'
+    )
+
+    class Meta:
+        ordering = ('id',)
+        verbose_name_plural = 'recipes'
+
+    def __str__(self):
+        return self.name
 
 
-class RecipeIngredientAmount(models.Model):
+class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='recipe object'
     )
-    ingredientamount = models.ForeignKey(
-        IngredientAmount,
-        on_delete=models.CASCADE
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        verbose_name='recipe tag'
     )
+
+    class Meta:
+        verbose_name_plural = 'recipe tags'
 
     def __str__(self):
-        return f'{self.recipe} {self.ingredientamount}'
+        return f'{self.recipe} | {self.tag}'
 
 
-class TagRecipe(models.Model):
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='recipe object'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='recipe ingredient'
+    )
+    amount = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1, 'min amount'),
+            MaxValueValidator(10000, 'max amount')
+        ],
+        verbose_name='ingredient amount'
+    )
+
+    class Meta:
+        verbose_name_plural = 'recipe ingredients'
 
     def __str__(self):
-        return f'{self.tag.name} {self.recipe.name}'
+        return f'{self.recipe} | {self.ingredient} | {self.amount}'

@@ -4,9 +4,9 @@ from django.core.files.base import ContentFile
 
 from rest_framework import serializers
 
-from recipes.models import (Tag, Ingredient, Recipe,
-                            TagRecipe, IngredientAmount,
-                            RecipeIngredientAmount)
+from recipes.models import (Tag, Ingredient, Recipe, RecipeTag,
+                            RecipeIngredient)
+
 from users.serializers import CustomUserSerializer
 
 
@@ -24,11 +24,15 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientAmountSerializer(serializers.ModelSerializer):
+class RecipeIngredienteSerilaizer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient',
+        queryset=Ingredient.objects.all()
+    )
 
     class Meta:
-        model = IngredientAmount
-        fields = ('ingredient', 'amount')
+        model = RecipeIngredient
+        fields = ('id', 'amount')
 
 
 class Base64ImageField(serializers.ImageField):
@@ -41,7 +45,7 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = IngredientAmountSerializer(many=True)
+    ingredients = RecipeIngredienteSerilaizer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
@@ -61,17 +65,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
 
         for tag in tags:
-            TagRecipe.objects.create(
+            RecipeTag.objects.create(
                 tag=tag, recipe=recipe
             )
 
         for ingredient in ingredients:
-            ingt = Ingredient.objects.get(id=ingredient['ingredient'].id)
-            ingrt_amount = IngredientAmount.objects.create(
-                ingredient=ingt, amount=ingredient['amount']
-            )
-            RecipeIngredientAmount.objects.create(
-                recipe=recipe, ingredientamount=ingrt_amount
+            current_ingredient = Ingredient.objects.get(id=ingredient['id'].id)
+
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=current_ingredient,
+                amount=ingredient['amount']
             )
 
         return recipe
@@ -82,27 +86,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance.text = validated_data.get('text')
         instance.cooking_time = validated_data.get('cooking_time')
 
-        tags_data = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-        tag_lst, ingt_amount_lst = [], []
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
 
-        recipe = Recipe.objects.get(id=instance.id)
+        tags_lst, ingredients_lst = [], []
 
-        for tag in tags_data:
-            current_tag = Tag.objects.get(pk=tag.pk)
-            tag_lst.append(current_tag)
+        for tag in tags:
+            current_tag = Tag.objects.get(id=tag.id)
+            tags_lst.append(current_tag)
 
-        for ingredient in ingredients_data:
-            ingt = Ingredient.objects.get(id=ingredient['ingredient'].id)
-            ingt_amount, _ = IngredientAmount.objects.get_or_create(
-                ingredient=ingt, amount=ingredient['amount']
-            )
-            RecipeIngredientAmount.objects.get_or_create(
-                recipe=recipe, ingredientamount=ingt_amount)
-            ingt_amount_lst.append(ingt_amount)
+        for ingredient in ingredients:
+            current_ingredient = Ingredient.objects.get(id=ingredient['id'])
+            ingredients_lst.append(current_ingredient)
 
-        instance.tags.set(tag_lst)
-        instance.ingredients.set(ingt_amount_lst)
+        instance.tags.set(tags_lst)
+        instance.ingredients.set(ingredients_lst)
 
         instance.save()
 
