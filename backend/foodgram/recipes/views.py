@@ -4,7 +4,7 @@ from rest_framework import status
 
 from recipes.models import Tag, Ingredient, Recipe
 from recipes.serializers import (TagSerializer, IngredientSerializer,
-                                 RecipeSerializer)
+                                 RecipeSerializer, RecipeReadSerializer)
 
 
 class ListTags(APIView):
@@ -45,14 +45,14 @@ class ApiRecipe(APIView):
 
     def get(self, request):
         queryset = Recipe.objects.all()
-        serializer = RecipeSerializer(queryset, many=True)
+        serializer = RecipeReadSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ApiRecipeDetail(APIView):
     def get(self, request, pk):
         recipe = Recipe.objects.get(pk=pk)
-        serializer = RecipeSerializer(recipe)
+        serializer = RecipeReadSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):

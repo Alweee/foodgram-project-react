@@ -26,13 +26,23 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredienteSerilaizer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='ingredient',
-        queryset=Ingredient.objects.all()
+        queryset=Ingredient.objects.all(),
     )
 
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'amount')
+
+
+class RecipeIngredientsReadSerilaizer(serializers.ModelSerializer):
+    amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def get_amout(self, obj):
+        pass
 
 
 class Base64ImageField(serializers.ImageField):
@@ -45,13 +55,13 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredienteSerilaizer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
     )
-    image = Base64ImageField()
     author = CustomUserSerializer(required=False)
+    ingredients = RecipeIngredienteSerilaizer(many=True)
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -70,7 +80,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
         for ingredient in ingredients:
-            current_ingredient = Ingredient.objects.get(id=ingredient['id'].id)
+            current_ingredient = Ingredient.objects.get(
+                id=ingredient['id'].id
+            )
 
             RecipeIngredient.objects.create(
                 recipe=recipe,
@@ -105,3 +117,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class RecipeReadSerializer(serializers.ModelSerializer):
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
+    author = CustomUserSerializer(required=False)
+    ingredients = RecipeIngredientsReadSerilaizer(many=True)
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'tags', 'author', 'ingredients', 'name',
+                  'image', 'text', 'cooking_time')

@@ -20,24 +20,38 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
+    # is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name')
 
+    # def get_is_subscribed(self, obj):
+    #     current_user = self.context['request'].user
+    #     return Subscription.objects.filter(
+    #         user=current_user,
+    #         author=obj).exists()
 
-class FollowSerializer(UserSerializer):
+
+class SubscribeReadSerializer(serializers.ModelSerializer):
+    # is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name')
 
+    # def get_is_subscribed(self, obj):
+    #     current_user = self.context['request'].user
+    #     return Subscription.objects.filter(
+    #         user=current_user,
+    #         author=obj).exists()
 
-class FollowReadSerializer(serializers.ModelSerializer):
-    following = CustomUserSerializer()
+
+class SubscribeSerializer(CustomUserSerializer):
 
     class Meta:
         model = User
-        fields = ('following',)
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name')

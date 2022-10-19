@@ -123,7 +123,7 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='recipe ingredient'
     )
-    amount = models.PositiveSmallIntegerField(
+    amount = models.IntegerField(
         validators=[
             MinValueValidator(1, 'min amount'),
             MaxValueValidator(10000, 'max amount')
