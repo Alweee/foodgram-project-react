@@ -2,9 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import Tag, Ingredient, Recipe, Favorite
 from recipes.serializers import (TagSerializer, IngredientSerializer,
-                                 RecipeSerializer, RecipeReadSerializer)
+                                 RecipeSerializer, RecipeReadSerializer,
+                                 FavoriteSerializer)
 
 
 class ListTags(APIView):
@@ -66,4 +67,22 @@ class ApiRecipeDetail(APIView):
     def delete(self, request, pk):
         recipe = Recipe.objects.get(pk=pk)
         recipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ApiFavorite(APIView):
+    def post(self, request, pk):
+        current_recipe = Recipe.objects.get(pk=pk)
+        Favorite.objects.create(
+            recipe=current_recipe, user=request.user
+        )
+        serializer = FavoriteSerializer(current_recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        current_recipe = Recipe.objects.get(pk=pk)
+        favorite = Favorite.objects.get(
+            recipe=current_recipe, user=request.user
+        )
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

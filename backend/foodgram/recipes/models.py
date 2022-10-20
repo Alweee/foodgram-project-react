@@ -53,7 +53,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         related_name='recipes',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='recipe author'
     )
     name = models.CharField(
         max_length=150,
@@ -97,7 +98,7 @@ class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='recipe object'
+        verbose_name='recipe'
     )
     tag = models.ForeignKey(
         Tag,
@@ -116,11 +117,12 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='recipe object'
+        verbose_name='recipe'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
+        related_name='ingredients',
         verbose_name='recipe ingredient'
     )
     amount = models.IntegerField(
@@ -136,3 +138,22 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f'{self.recipe} | {self.ingredient} | {self.amount}'
+
+
+class Favorite(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
+
+    class Meta:
+        verbose_name_plural = 'favorites'
+
+    def __str__(self):
+        return f'{self.recipe} | {self.user}'

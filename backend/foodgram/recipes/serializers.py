@@ -24,25 +24,20 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class RecipeIngredienteSerilaizer(serializers.ModelSerializer):
+class RecipeIngredientSerilaizer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-    )
+        queryset=Ingredient.objects.all())
 
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'amount')
 
 
-class RecipeIngredientsReadSerilaizer(serializers.ModelSerializer):
-    amount = serializers.SerializerMethodField()
+class RecipeIngredientReadSerilaizer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def get_amout(self, obj):
-        pass
+        fields = ('id', 'amount', 'name', 'measurement_unit')
 
 
 class Base64ImageField(serializers.ImageField):
@@ -55,13 +50,13 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    ingredients = RecipeIngredientSerilaizer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all()
+        queryset=Tag.objects.all(),
+        many=True
     )
-    author = CustomUserSerializer(required=False)
-    ingredients = RecipeIngredienteSerilaizer(many=True)
     image = Base64ImageField()
+    author = CustomUserSerializer(required=False)
 
     class Meta:
         model = Recipe
@@ -120,15 +115,22 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
+    ingredients = RecipeIngredientReadSerilaizer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all()
+        queryset=Tag.objects.all(),
+        many=True
     )
-    author = CustomUserSerializer(required=False)
-    ingredients = RecipeIngredientsReadSerilaizer(many=True)
     image = Base64ImageField()
+    author = CustomUserSerializer(required=False)
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'name',
                   'image', 'text', 'cooking_time')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')

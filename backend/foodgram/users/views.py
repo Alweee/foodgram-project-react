@@ -19,9 +19,6 @@ class CustomUserViewSet(UserViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering = ('id',)
 
-    def get_queryset(self):
-        return User.objects.all()
-
 
 class SubscribeList(APIView):
     def get(self, request):
