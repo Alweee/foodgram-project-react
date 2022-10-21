@@ -19,26 +19,37 @@ class CustomUserViewSet(UserViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering = ('id',)
 
+    def get_queryset(self):
+        queryset = User.objects.all()
+        return queryset
 
-class SubscribeList(APIView):
+
+class SubscriptionList(APIView):
     def get(self, request):
         current_user = get_object_or_404(User, pk=request.user.pk)
-        queryset = current_user.follower.all()
-        serializer = SubscribeReadSerializer(queryset, many=True)
+        queryset = current_user.subscribers.all()
+        serializer = SubscribeReadSerializer(
+            queryset,
+            many=True,
+            context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SubscribeApiView(APIView):
+class SubscriptionApiView(APIView):
     def post(self, request, pk):
         author = get_object_or_404(User, pk=pk)
         sub = Subscription.objects.create(user=request.user, author=author)
-        serializer = SubscribeSerializer(sub.author)
+        serializer = SubscribeSerializer(
+            sub.author,
+            context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         author = get_object_or_404(User, pk=pk)
         subscription = Subscription.objects.get(
             user=request.user,
-            following=author)
+            author=author)
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
