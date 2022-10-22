@@ -8,8 +8,7 @@ from rest_framework.response import Response
 
 from users.pagination import CustomPagination
 from users.models import User, Subscription
-from users.serializers import (CustomUserSerializer, SubscribeSerializer,
-                               SubscribeReadSerializer)
+from users.serializers import CustomUserSerializer, SubscribeSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -26,9 +25,8 @@ class CustomUserViewSet(UserViewSet):
 
 class SubscriptionList(APIView):
     def get(self, request):
-        current_user = get_object_or_404(User, pk=request.user.pk)
-        queryset = current_user.subscribers.all()
-        serializer = SubscribeReadSerializer(
+        queryset = User.objects.filter(following__subscriber=request.user)
+        serializer = SubscribeSerializer(
             queryset,
             many=True,
             context={'request': request}
