@@ -62,7 +62,7 @@ class ApiRecipe(APIView):
         serializer = RecipeReadSerializer(
             queryset,
             many=True,
-            context={'context': request}
+            context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 

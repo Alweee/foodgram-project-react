@@ -99,10 +99,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        instance.image = validated_data.get('image')
-        instance.name = validated_data.get('name')
-        instance.text = validated_data.get('text')
-        instance.cooking_time = validated_data.get('cooking_time')
+        instance.image = validated_data.get('image', instance.image)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time', instance.cooking_time
+        )
 
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -114,8 +116,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             tags_lst.append(current_tag)
 
         for ingredient in ingredients:
-            current_ingredient = Ingredient.objects.get(id=ingredient['id'])
-            ingredients_lst.append(current_ingredient)
+            current_ingredient = Ingredient.objects.get(id=ingredient['id'].id)
+            recipe_ingredient_obj = RecipeIngredient.objects.get_or_create(
+                amount=ingredient['amount']
+            )
+            ingredients_lst.append({
+                'id': current_ingredient.id,
+                'amount': recipe_ingredient_obj.amount
+            })
 
         instance.tags.set(tags_lst)
         instance.ingredients.set(ingredients_lst)
@@ -137,7 +145,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     image = Base64ImageField()
-    author = CustomUserSerializer(required=False)
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -148,6 +156,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         queryset = RecipeIngredient.objects.filter(recipe=obj)
         serializer = RecipeIngredientReadSerializer(queryset, many=True)
+        return serializer.data
+
+    def get_author(self, obj):
+        request = self.context['request']
+        serializer = CustomUserSerializer(
+            obj.author,
+            context={'request': request}
+        )
         return serializer.data
 
 
