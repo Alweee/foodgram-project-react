@@ -31,7 +31,7 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         current_user = self.context['request'].user
         return Subscription.objects.filter(
-            user=current_user,
+            subscriber=current_user,
             author=obj).exists()
 
 
