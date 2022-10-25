@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import (Tag, Ingredient, Recipe, RecipeTag,
-                            RecipeIngredient, Favorite)
+                            RecipeIngredient, Favorite, ShoppingCart)
 
 from users.serializers import CustomUserSerializer
 
@@ -145,12 +145,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'name', 'image', 'text', 'cooking_time')
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
         read_only_fields = ('__all__',)
 
     def get_author(self, obj):
@@ -173,9 +175,20 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             recipe=obj
         ).exists()
 
+    def get_is_in_shopping_cart(self, obj):
+        current_user = self.context['request'].user
+        return ShoppingCart.objects.filter(
+            user=current_user,
+            recipe=obj
+        ).exists()
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ShoppingCartSerializer(FavoriteSerializer):
+    pass
