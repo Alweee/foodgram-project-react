@@ -37,7 +37,9 @@ class SubscriptionList(APIView):
 class SubscriptionApiView(APIView):
     def post(self, request, pk):
         author = get_object_or_404(User, pk=pk)
-        sub = Subscription.objects.create(user=request.user, author=author)
+        sub = Subscription.objects.create(
+            subscriber=request.user,
+            author=author)
         serializer = SubscribeSerializer(
             sub.author,
             context={'request': request}
@@ -47,7 +49,7 @@ class SubscriptionApiView(APIView):
     def delete(self, request, pk):
         author = get_object_or_404(User, pk=pk)
         subscription = Subscription.objects.get(
-            user=request.user,
+            subscriber=request.user,
             author=author)
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

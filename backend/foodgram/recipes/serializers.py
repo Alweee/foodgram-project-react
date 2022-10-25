@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from recipes.models import (Tag, Ingredient, Recipe, RecipeTag,
-                            RecipeIngredient)
+                            RecipeIngredient, Favorite)
 
 from users.serializers import CustomUserSerializer
 
@@ -117,13 +117,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             current_ingredient = Ingredient.objects.get(id=ingredient['id'].id)
-            recipe_ingredient_obj = RecipeIngredient.objects.get_or_create(
+            RecipeIngredient.objects.get_or_create(
+                recipe=instance,
+                ingredient=current_ingredient,
                 amount=ingredient['amount']
             )
-            ingredients_lst.append({
-                'id': current_ingredient.id,
-                'amount': recipe_ingredient_obj.amount
-            })
+            ingredients_lst.append(current_ingredient.id)
 
         instance.tags.set(tags_lst)
         instance.ingredients.set(ingredients_lst)
@@ -142,21 +141,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
-    image = Base64ImageField()
     author = serializers.SerializerMethodField()
+    ingredients = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 'name',
-                  'image', 'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'name', 'image', 'text', 'cooking_time')
         read_only_fields = ('__all__',)
-
-    def get_ingredients(self, obj):
-        queryset = RecipeIngredient.objects.filter(recipe=obj)
-        serializer = RecipeIngredientReadSerializer(queryset, many=True)
-        return serializer.data
 
     def get_author(self, obj):
         request = self.context['request']
@@ -165,6 +160,18 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             context={'request': request}
         )
         return serializer.data
+
+    def get_ingredients(self, obj):
+        queryset = RecipeIngredient.objects.filter(recipe=obj)
+        serializer = RecipeIngredientReadSerializer(queryset, many=True)
+        return serializer.data
+
+    def get_is_favorited(self, obj):
+        current_user = self.context['request'].user
+        return Favorite.objects.filter(
+            user=current_user,
+            recipe=obj
+        ).exists()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -94,7 +96,8 @@ class ApiFavorite(APIView):
     def post(self, request, pk):
         current_recipe = Recipe.objects.get(pk=pk)
         Favorite.objects.create(
-            recipe=current_recipe, user=request.user
+            recipe=current_recipe,
+            user=request.user
         )
         serializer = FavoriteSerializer(
             current_recipe,
@@ -105,7 +108,21 @@ class ApiFavorite(APIView):
     def delete(self, request, pk):
         current_recipe = Recipe.objects.get(pk=pk)
         favorite = Favorite.objects.get(
-            recipe=current_recipe, user=request.user
+            recipe=current_recipe,
+            user=request.user
         )
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ApiShoppingCart(APIView):
+    def post(self, request, pk):
+        current_recipe =
+
+    def delete(self, request, pk):
+        pass
+
+
+class ApiDownloadShoppingCart(APIView):
+    def get(self, request):
+        pass

@@ -32,7 +32,8 @@ class CustomUserSerializer(UserSerializer):
         current_user = self.context['request'].user
         return Subscription.objects.filter(
             subscriber=current_user,
-            author=obj).exists()
+            author=obj
+        ).exists()
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -59,5 +60,5 @@ class SubscribeSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         current_user = self.context['request'].user
         return Subscription.objects.filter(
-            user=current_user,
+            subscriber=current_user,
             author=obj).exists()

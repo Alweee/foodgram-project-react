@@ -24,7 +24,7 @@ class Subscription(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['subscriber', 'author'],
-                name='unique_user_author'
+                name='unique_subscriber_author'
             )
         ]
         verbose_name_plural = 'subscriptions'
