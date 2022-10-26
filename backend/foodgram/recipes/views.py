@@ -1,10 +1,14 @@
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.conf import settings
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from recipes.models import Tag, Ingredient, Recipe, Favorite, ShoppingCart
+from recipes.models import (Tag, Ingredient, Recipe, Favorite, ShoppingCart,
+                            RecipeIngredient)
 from recipes.serializers import (TagSerializer, IngredientSerializer,
                                  RecipeSerializer, RecipeReadSerializer,
                                  FavoriteSerializer, ShoppingCartSerializer)
@@ -138,6 +142,28 @@ class ApiShoppingCart(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ApiDownloadShoppingCart(APIView):
-    def get(self, request):
-        pass
+@api_view(['GET'])
+def download_shopping_cart(request):
+    file_path = (f'{settings.MEDIA_ROOT}\\'
+                 f'user_{request.user.username}\\'
+                 f'shopping_cart.txt')
+
+    shopping_cart = ShoppingCart.objects.filter(user=request.user)
+
+    with open(file_path, 'w') as file:
+        for obj in shopping_cart:
+            ingredients = obj.recipe.ingredients.all()
+            for ingredient in ingredients:
+                amount = RecipeIngredient.objects.get(
+                    recipe=obj.recipe,
+                    ingredient=ingredient
+                )
+                file.write(f'{ingredient.name} '
+                           f'({ingredient.measurement_unit}) - '
+                           f'{amount.amount}\n')
+
+    FilePointer = open(file_path, 'r')
+    response = HttpResponse(FilePointer, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'
+
+    return response
