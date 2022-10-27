@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.conf import settings
 
 from rest_framework.views import APIView
@@ -149,6 +149,7 @@ def download_shopping_cart(request):
                  f'shopping_cart.txt')
 
     shopping_cart = ShoppingCart.objects.filter(user=request.user)
+    data = {}
 
     with open(file_path, 'w') as file:
         for obj in shopping_cart:
@@ -158,9 +159,21 @@ def download_shopping_cart(request):
                     recipe=obj.recipe,
                     ingredient=ingredient
                 )
+                if ingredient.name in data.keys():
+                    data[ingredient.name] += amount.amount
+                else:
+                    data[ingredient.name] = amount.amount
+
                 file.write(f'{ingredient.name} '
                            f'({ingredient.measurement_unit}) - '
                            f'{amount.amount}\n')
+
+    with open(file_path, 'w') as file:
+        for name in data.keys():
+            ingredient = Ingredient.objects.get(name=name)
+            file.write(f'{name} '
+                       f'({ingredient.measurement_unit}) - '
+                       f'{data[name]}\n')
 
     FilePointer = open(file_path, 'r')
     response = HttpResponse(FilePointer, content_type='text/plain')

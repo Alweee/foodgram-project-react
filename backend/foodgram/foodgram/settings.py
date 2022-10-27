@@ -104,6 +104,10 @@ DJOSER = {
         'current_user': 'users.serializers.CustomUserSerializer',
         'user': 'users.serializers.CustomUserSerializer',
     },
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+    }
+
 }
 
 LANGUAGE_CODE = 'en-us'

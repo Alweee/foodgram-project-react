@@ -9,9 +9,9 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('api/', include('users.urls')),
     path('api/', include('recipes.urls')),
+    path('admin/', admin.site.urls),
 ]
 
 schema_view = get_schema_view(
