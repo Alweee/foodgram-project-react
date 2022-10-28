@@ -3,10 +3,10 @@ import base64
 from django.core.files.base import ContentFile
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Tag, Ingredient, Recipe, RecipeTag,
                             RecipeIngredient, Favorite, ShoppingCart)
-
 from users.serializers import CustomUserSerializer
 
 
@@ -186,8 +186,16 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Favorite
+        fields = ('user', 'recipe')
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=('user', 'recipe'),
+                message='Рецепт уже есть в избранном!'
+            )
+        ]
 
 
 class ShoppingCartSerializer(FavoriteSerializer):
