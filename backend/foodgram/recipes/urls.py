@@ -1,9 +1,16 @@
 from django.urls import path
 
-from recipes.views import (TagList, TagDetail, IngredientList,
-                           IngredientDetail, ApiRecipe, ApiRecipeDetail,
-                           ApiFavorite, ApiShoppingCart,
-                           download_shopping_cart)
+from recipes.views import (
+    TagList,
+    TagDetail,
+    IngredientList,
+    IngredientDetail,
+    ApiRecipe,
+    ApiRecipeDetail,
+    ApiFavorite,
+    ApiShoppingCart,
+    download_shopping_cart
+)
 
 
 urlpatterns = [

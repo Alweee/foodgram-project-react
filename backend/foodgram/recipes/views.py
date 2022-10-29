@@ -1,18 +1,31 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.conf import settings
+from django.db.utils import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
-                            Favorite, ShoppingCart,)
+from recipes.models import (
+    Tag,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    Favorite,
+    ShoppingCart,
+)
 
-from recipes.serializers import (TagSerializer, IngredientSerializer,
-                                 RecipeSerializer, RecipeReadSerializer,
-                                 FavoriteSerializer, ShoppingCartSerializer)
+from recipes.serializers import (
+    TagSerializer,
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeReadSerializer,
+)
+
+from users.serializers import RecipeInfoSerializer
 
 
 class TagList(APIView):
@@ -130,36 +143,16 @@ class ApiFavorite(APIView):
     def post(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
 
-        favorite = Favorite.objects.create(
-            recipe=current_recipe,
-            user=request.user
-        )
-        serializer = FavoriteSerializer(
-            favorite,
-            context={'request': request}
-        )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            Favorite.objects.create(
+                recipe=current_recipe,
+                user=request.user
+            )
+        except IntegrityError:
+            return Response({'errors': 'Recipe already is in favorite'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        current_recipe = get_object_or_404(Recipe, pk=pk)
-
-        favorite = Favorite.objects.get(
-            recipe=current_recipe,
-            user=request.user
-        )
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ApiShoppingCart(APIView):
-    def post(self, request, pk):
-        current_recipe = get_object_or_404(Recipe, pk=pk)
-
-        ShoppingCart.objects.create(
-            user=request.user,
-            recipe=current_recipe
-        )
-        serializer = ShoppingCartSerializer(
+        serializer = RecipeInfoSerializer(
             current_recipe,
             context={'request': request}
         )
@@ -168,10 +161,48 @@ class ApiShoppingCart(APIView):
     def delete(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
 
-        shoppingcart = ShoppingCart.objects.get(
-            user=request.user,
-            recipe=current_recipe
+        try:
+            favorite = Favorite.objects.get(
+                recipe=current_recipe,
+                user=request.user
+            )
+        except ObjectDoesNotExist:
+            return Response({'errors': 'Recipe not found in favorite'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ApiShoppingCart(APIView):
+    def post(self, request, pk):
+        current_recipe = get_object_or_404(Recipe, pk=pk)
+
+        try:
+            ShoppingCart.objects.create(
+                user=request.user,
+                recipe=current_recipe
+            )
+        except IntegrityError:
+            return Response({'errors': 'Recipe already is in shopping cart'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = RecipeInfoSerializer(
+            current_recipe,
+            context={'request': request}
         )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        current_recipe = get_object_or_404(Recipe, pk=pk)
+
+        try:
+            shoppingcart = ShoppingCart.objects.get(
+                user=request.user,
+                recipe=current_recipe
+            )
+        except ObjectDoesNotExist:
+            return Response({'error': 'Recipe not found in shopping cart'},
+                            status=status.HTTP_400_BAD_REQUEST)
         shoppingcart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

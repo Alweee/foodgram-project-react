@@ -39,7 +39,7 @@ class CustomUserSerializer(UserSerializer):
         ).exists()
 
 
-class RecipeReadSerializer(serializers.ModelSerializer):
+class RecipeInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
@@ -48,7 +48,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 class SubscribeSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeReadSerializer(many=True)
+    recipes = RecipeInfoSerializer(many=True)
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
