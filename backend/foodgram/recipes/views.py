@@ -62,7 +62,6 @@ class IngredientList(APIView):
         ingredients = Ingredient.objects.all()
 
         name = self.request.query_params.get('search')
-
         if name is not None:
             ingredients = ingredients.filter(name__startswith=name)
 
@@ -149,8 +148,10 @@ class ApiFavorite(APIView):
                 user=request.user
             )
         except IntegrityError:
-            return Response({'errors': 'Recipe already is in favorite'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Recipe already is in favorite'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         serializer = RecipeInfoSerializer(
             current_recipe,
@@ -167,8 +168,11 @@ class ApiFavorite(APIView):
                 user=request.user
             )
         except ObjectDoesNotExist:
-            return Response({'errors': 'Recipe not found in favorite'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Recipe not found in favorite'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -183,13 +187,16 @@ class ApiShoppingCart(APIView):
                 recipe=current_recipe
             )
         except IntegrityError:
-            return Response({'errors': 'Recipe already is in shopping cart'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Recipe already is in shopping cart'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         serializer = RecipeInfoSerializer(
             current_recipe,
             context={'request': request}
         )
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
@@ -217,23 +224,18 @@ def download_shopping_cart(request):
 
     data = {}
 
-    with open(file_path, 'w') as file:
-        for obj in shoppingcart:
-            ingredients = obj.recipe.ingredients.all()
+    for purchase in shoppingcart:
+        ingredients = purchase.recipe.ingredients.all()
 
-            for ingredient in ingredients:
-                recipeingredient = RecipeIngredient.objects.get(
-                    recipe=obj.recipe,
-                    ingredient=ingredient
-                )
-                if ingredient.name in data.keys():
-                    data[ingredient.name] += recipeingredient.amount
-                else:
-                    data[ingredient.name] = recipeingredient.amount
-
-                file.write(f'{ingredient.name} '
-                           f'({ingredient.measurement_unit}) - '
-                           f'{recipeingredient.amount}\n')
+        for ingredient in ingredients:
+            recipeingredient = RecipeIngredient.objects.get(
+                recipe=purchase.recipe,
+                ingredient=ingredient
+            )
+            if ingredient.name in data.keys():
+                data[ingredient.name] += recipeingredient.amount
+            else:
+                data[ingredient.name] = recipeingredient.amount
 
     with open(file_path, 'w') as file:
         for name in data.keys():

@@ -9,7 +9,6 @@
                 "runserver"
             ],
             "django": true,
-            "justMyCode": true
         }
     ]
 }
