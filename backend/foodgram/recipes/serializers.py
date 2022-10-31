@@ -1,6 +1,7 @@
 import base64
 
 from django.core.files.base import ContentFile
+from django.contrib.auth.models import AnonymousUser
 
 from rest_framework import serializers
 
@@ -177,14 +178,16 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         current_user = self.context['request'].user
+        if isinstance(current_user, AnonymousUser):
+            return False
         return Favorite.objects.filter(
             user=current_user,
-            recipe=obj
-        ).exists()
+            recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         current_user = self.context['request'].user
+        if isinstance(current_user, AnonymousUser):
+            return False
         return ShoppingCart.objects.filter(
             user=current_user,
-            recipe=obj
-        ).exists()
+            recipe=obj).exists()

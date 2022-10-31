@@ -17,15 +17,14 @@ from recipes.models import (
     Favorite,
     ShoppingCart,
 )
-
 from recipes.serializers import (
     TagSerializer,
     IngredientSerializer,
     RecipeSerializer,
     RecipeReadSerializer,
 )
-
 from users.serializers import RecipeInfoSerializer
+from users.pagination import CustomPageNumberPagination
 
 
 class TagList(APIView):
@@ -37,8 +36,8 @@ class TagList(APIView):
         serializer = TagSerializer(
             tags,
             many=True,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -50,8 +49,8 @@ class TagDetail(APIView):
 
         serializer = TagSerializer(
             current_tag,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -68,8 +67,8 @@ class IngredientList(APIView):
         serializer = IngredientSerializer(
             ingredients,
             many=True,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -81,17 +80,19 @@ class IngredientDetail(APIView):
 
         serializer = IngredientSerializer(
             ingredient,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ApiRecipe(APIView):
+class ApiRecipe(APIView, CustomPageNumberPagination):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         serializer = RecipeSerializer(
             data=request.data,
-            context={'request': request}
-        )
+            context={'request': request})
+
         if serializer.is_valid():
             serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -99,13 +100,24 @@ class ApiRecipe(APIView):
 
     def get(self, request):
         recipes = Recipe.objects.all()
+        results = self.paginate_queryset(recipes, request, view=self)
+
+        is_favorited = request.query_params.get('is_favorited')
+        if is_favorited is not None:
+            is_favorited = int(is_favorited)
+            results.filter()  # тут закончил
 
         serializer = RecipeReadSerializer(
-            recipes,
+            results,
             many=True,
-            context={'request': request}
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            context={'request': request})
+
+        return self.get_paginated_response(serializer.data)
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (permissions.AllowAny(),)
+        return super().get_permissions()
 
 
 class ApiRecipeDetail(APIView):
@@ -114,8 +126,8 @@ class ApiRecipeDetail(APIView):
 
         serializer = RecipeReadSerializer(
             current_recipe,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
@@ -145,18 +157,16 @@ class ApiFavorite(APIView):
         try:
             Favorite.objects.create(
                 recipe=current_recipe,
-                user=request.user
-            )
+                user=request.user)
         except IntegrityError:
             return Response(
                 {'errors': 'Recipe already is in favorite'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RecipeInfoSerializer(
             current_recipe,
-            context={'request': request}
-        )
+            context={'request': request})
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
@@ -165,15 +175,14 @@ class ApiFavorite(APIView):
         try:
             favorite = Favorite.objects.get(
                 recipe=current_recipe,
-                user=request.user
-            )
+                user=request.user)
         except ObjectDoesNotExist:
             return Response(
                 {'errors': 'Recipe not found in favorite'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                status=status.HTTP_400_BAD_REQUEST)
 
         favorite.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -184,18 +193,16 @@ class ApiShoppingCart(APIView):
         try:
             ShoppingCart.objects.create(
                 user=request.user,
-                recipe=current_recipe
-            )
+                recipe=current_recipe)
+
         except IntegrityError:
             return Response(
                 {'errors': 'Recipe already is in shopping cart'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RecipeInfoSerializer(
             current_recipe,
-            context={'request': request}
-        )
+            context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
