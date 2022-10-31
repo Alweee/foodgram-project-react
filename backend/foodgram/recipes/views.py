@@ -100,12 +100,22 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
     def get(self, request):
         recipes = Recipe.objects.all()
-        results = self.paginate_queryset(recipes, request, view=self)
 
         is_favorited = request.query_params.get('is_favorited')
         if is_favorited is not None:
             is_favorited = int(is_favorited)
-            results.filter()  # тут закончил
+            favorite_recipes = Favorite.objects.values_list(
+                'recipe',
+                flat=True
+            )
+            if is_favorited == 1:
+                recipes = recipes.filter(id__in=favorite_recipes)
+
+        is_in_shopping_cart = request.query_params.get('is_in_shopping_cart')
+        if is_in_shopping_cart is not None:
+            is_in_shopping_cart = int(is_in_shopping_cart)  # тут остановился
+
+        results = self.paginate_queryset(recipes, request, view=self)
 
         serializer = RecipeReadSerializer(
             results,
