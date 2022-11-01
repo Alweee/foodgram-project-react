@@ -23,6 +23,7 @@ from recipes.serializers import (
     RecipeSerializer,
     RecipeReadSerializer,
 )
+from recipes.permissions import OnlyAuthor
 from users.serializers import RecipeInfoSerializer
 from users.pagination import CustomPageNumberPagination
 
@@ -113,7 +114,22 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
         is_in_shopping_cart = request.query_params.get('is_in_shopping_cart')
         if is_in_shopping_cart is not None:
-            is_in_shopping_cart = int(is_in_shopping_cart)  # тут остановился
+            is_in_shopping_cart = int(is_in_shopping_cart)
+            shopping_cart_recipes = ShoppingCart.objects.values_list(
+                'recipe',
+                flat=True
+            )
+            if is_in_shopping_cart == 1:
+                recipes = recipes.filter(id__in=shopping_cart_recipes)
+
+        author = request.query_params.get('author')
+        if author is not None:
+            author = int(author)
+            recipes = recipes.filter(author_id=author)
+
+        tags = self.request.query_params.getlist('tags')
+        if tags is not None:
+            recipes = recipes.filter(tags__slug__in=tags).distinct()
 
         results = self.paginate_queryset(recipes, request, view=self)
 
@@ -131,6 +147,8 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
 
 class ApiRecipeDetail(APIView):
+    permission_classes = [OnlyAuthor]
+
     def get(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -158,6 +176,11 @@ class ApiRecipeDetail(APIView):
         current_recipe.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (permissions.AllowAny(),)
+        return super().get_permissions()
 
 
 class ApiFavorite(APIView):
