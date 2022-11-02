@@ -128,7 +128,7 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
             recipes = recipes.filter(author_id=author)
 
         tags = self.request.query_params.getlist('tags')
-        if tags is not None:
+        if len(tags):
             recipes = recipes.filter(tags__slug__in=tags).distinct()
 
         results = self.paginate_queryset(recipes, request, view=self)
@@ -147,7 +147,7 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
 
 class ApiRecipeDetail(APIView):
-    permission_classes = [OnlyAuthor]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
@@ -160,6 +160,7 @@ class ApiRecipeDetail(APIView):
 
     def patch(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
+        self.check_object_permissions(request, current_recipe)
 
         serializer = RecipeSerializer(
             current_recipe,
@@ -173,13 +174,14 @@ class ApiRecipeDetail(APIView):
 
     def delete(self, request, pk):
         current_recipe = get_object_or_404(Recipe, pk=pk)
+        self.check_object_permissions(request, current_recipe)
         current_recipe.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_permissions(self):
-        if self.request.method == 'GET':
-            return (permissions.AllowAny(),)
+        if self.request.method == 'PATCH' or 'DELETE':
+            return (OnlyAuthor(),)
         return super().get_permissions()
 
 

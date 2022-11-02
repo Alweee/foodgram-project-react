@@ -2,7 +2,6 @@
     "configurations": [
         {
             "name": "Python: Django",
-            "python": "C:\\Users\\sasha\\Dev\\foodgram-project-react\\venv\\Scripts\\python.exe",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\backend\\foodgram\\manage.py",

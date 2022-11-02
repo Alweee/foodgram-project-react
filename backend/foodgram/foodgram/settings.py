@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'drf_yasg',  # временно поюзаю, для наглядности
     'django_filters',
 ]
 
@@ -121,9 +120,9 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-MEDIA_ROOT = Path(BASE_DIR, 'media')
+STATIC_ROOT = Path(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
+MEDIA_ROOT = Path(BASE_DIR, 'media')
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
