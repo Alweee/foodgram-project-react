@@ -4,10 +4,11 @@ services:
 
   frontend:
     build:
-      context: ../frontend/
+      context: ../frontend
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+    stdin_open: true
 
   nginx:
     image: nginx:1.19.3
@@ -17,6 +18,10 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../backend/foodgram/static/:/var/html/static/
+      - ../backend/foodgram/media/:/var/html/media/
+    depends_on:
+      - web
 
   db:
     image: postgres:13.0-alpine
@@ -28,3 +33,14 @@ services:
   web:
     build:
       context: ../backend/foodgram/
+      dockerfile: Dockerfile
+    volumes:
+      - ../backend/foodgram/static/:/app/static/
+      - ../backend/foodgram/media/:/app/media/
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+
+volumes:
+  postgres_data:
