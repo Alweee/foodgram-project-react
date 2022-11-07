@@ -36,6 +36,8 @@ services:
     volumes:
       - ../backend/foodgram/static/:/app/static/
       - ../backend/foodgram/media/:/app/media/
+    ports:
+      - "8000:8000"
     depends_on:
       - db
     env_file:

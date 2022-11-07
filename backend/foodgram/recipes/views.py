@@ -59,11 +59,11 @@ class IngredientList(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        ingredients = Ingredient.objects.all()
-
-        name = self.request.query_params.get('search')
+        name = self.request.query_params.get('name')
         if name is not None:
-            ingredients = ingredients.filter(name__startswith=name)
+            ingredients = Ingredient.objects.filter(name__startswith=name)
+        else:
+            ingredients = Ingredient.objects.all()
 
         serializer = IngredientSerializer(
             ingredients,
