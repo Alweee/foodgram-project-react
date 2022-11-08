@@ -77,10 +77,10 @@ class IngredientDetail(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk):
-        ingredient = get_object_or_404(Ingredient, pk=pk)
+        current_ingredient = get_object_or_404(Ingredient, pk=pk)
 
         serializer = IngredientSerializer(
-            ingredient,
+            current_ingredient,
             context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -165,8 +165,8 @@ class ApiRecipeDetail(APIView):
         serializer = RecipeSerializer(
             current_recipe,
             data=request.data,
-            context={'request': request}
-        )
+            context={'request': request})
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -180,7 +180,7 @@ class ApiRecipeDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_permissions(self):
-        if self.request.method == 'PATCH' or 'DELETE':
+        if self.request.method in ('PATCH', 'DELETE'):
             return (OnlyAuthor(),)
         return super().get_permissions()
 
@@ -193,6 +193,7 @@ class ApiFavorite(APIView):
             Favorite.objects.create(
                 recipe=current_recipe,
                 user=request.user)
+
         except IntegrityError:
             return Response(
                 {'errors': 'Recipe already is in favorite'},
@@ -211,6 +212,7 @@ class ApiFavorite(APIView):
             favorite = Favorite.objects.get(
                 recipe=current_recipe,
                 user=request.user)
+
         except ObjectDoesNotExist:
             return Response(
                 {'errors': 'Recipe not found in favorite'},
@@ -247,11 +249,12 @@ class ApiShoppingCart(APIView):
         try:
             shoppingcart = ShoppingCart.objects.get(
                 user=request.user,
-                recipe=current_recipe
-            )
+                recipe=current_recipe)
+
         except ObjectDoesNotExist:
             return Response({'error': 'Recipe not found in shopping cart'},
                             status=status.HTTP_400_BAD_REQUEST)
+
         shoppingcart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -262,18 +265,18 @@ def download_shopping_cart(request):
                  f'user_{request.user.username}\\'
                  f'shopping_cart.txt')
 
-    shoppingcart = ShoppingCart.objects.filter(user=request.user)
+    shoppingcart_all = ShoppingCart.objects.filter(user=request.user)
 
     data = {}
 
-    for purchase in shoppingcart:
+    for purchase in shoppingcart_all:
         ingredients = purchase.recipe.ingredients.all()
 
         for ingredient in ingredients:
             recipeingredient = RecipeIngredient.objects.get(
                 recipe=purchase.recipe,
-                ingredient=ingredient
-            )
+                ingredient=ingredient)
+
             if ingredient.name in data.keys():
                 data[ingredient.name] += recipeingredient.amount
             else:

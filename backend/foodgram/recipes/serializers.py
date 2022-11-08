@@ -14,7 +14,6 @@ from recipes.models import (
     Favorite,
     ShoppingCart
 )
-
 from users.serializers import CustomUserSerializer
 
 
@@ -164,7 +163,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         read_only_fields = ('__all__',)
 
     def get_author(self, obj):
-        request = self.context['request']
+        request = self.context.get('request')
         serializer = CustomUserSerializer(
             obj.author,
             context={'request': request}
@@ -177,7 +176,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_is_favorited(self, obj):
-        current_user = self.context['request'].user
+        current_user = self.context.get('request').user
         if isinstance(current_user, AnonymousUser):
             return False
         return Favorite.objects.filter(
@@ -185,7 +184,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        current_user = self.context['request'].user
+        current_user = self.context.get('request').user
         if isinstance(current_user, AnonymousUser):
             return False
         return ShoppingCart.objects.filter(

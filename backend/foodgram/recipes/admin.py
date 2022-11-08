@@ -4,6 +4,8 @@ from recipes.models import (
     Tag,
     Ingredient,
     Recipe,
+    RecipeTag,
+    RecipeIngredient,
     Favorite,
     ShoppingCart
 )
@@ -21,20 +23,34 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author')
+    list_display = ('id', 'name', 'author', 'is_favorite_count')
     list_filter = ('author', 'name', 'tags')
+
+    @admin.display(description='is_favorite_count')
+    def is_favorite_count(self, obj):
+        return Favorite.objects.filter(recipe=obj).count()
+
+
+class RecipeTagAdmin(admin.ModelAdmin):
+    list_display = ('id', 'recipe', 'tag')
+
+
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    list_display = ('id', 'recipe', 'ingredient', 'amount')
 
 
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe')
+    list_display = ('id', 'user', 'recipe')
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe')
+    list_display = ('id', 'user', 'recipe')
 
 
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(RecipeTag, RecipeTagAdmin)
+admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Favorite, FavoriteAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)

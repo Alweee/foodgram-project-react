@@ -27,7 +27,7 @@ class CustomUserViewSet(UserViewSet):
 
 class SubscriptionList(APIView, CustomPageNumberPagination):
     def get(self, request):
-        authors = User.objects.filter(following__subscriber=request.user)
+        authors = User.objects.filter(authors__subscriber=request.user)
         results = self.paginate_queryset(authors, request, view=self)
 
         serializer = SubscribeSerializer(

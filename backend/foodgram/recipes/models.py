@@ -38,7 +38,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         max_length=50,
-        verbose_name='Ingredient  measurement_unit',
+        verbose_name='Ingredient measurement_unit',
     )
 
     class Meta:
@@ -70,24 +70,22 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='RecipeIngredient',
-        verbose_name='recipe ingredients'
+        through='RecipeIngredient'
     )
     tags = models.ManyToManyField(
         Tag,
-        through='RecipeTag',
-        verbose_name='recipe tags'
+        through='RecipeTag'
     )
     cooking_time = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1, 'min cooking time in minutes'),
-            MaxValueValidator(1440, 'max cooking time in minutes')
+            MinValueValidator(1, 'minimum cooking time in minutes'),
+            MaxValueValidator(1440, 'maximum cooking time in minutes')
         ],
-        verbose_name='cooking_time in minutes'
+        verbose_name='cooking time in minutes'
     )
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('name',)
         verbose_name_plural = 'recipes'
 
     def __str__(self):
@@ -97,33 +95,28 @@ class Recipe(models.Model):
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='recipe'
+        on_delete=models.CASCADE
     )
     tag = models.ForeignKey(
         Tag,
-        on_delete=models.CASCADE,
-        verbose_name='recipe tag'
+        on_delete=models.CASCADE
     )
 
     class Meta:
-        verbose_name_plural = 'recipe tags'
+        ordering = ('recipe__name',)
 
     def __str__(self):
-        return f'{self.recipe} | {self.tag}'
+        return f'{self.recipe}->{self.tag}'
 
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='recipeingredient'
+        on_delete=models.CASCADE
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE,
-        related_name='recipeingredient',
-        verbose_name='recipe ingredient'
+        on_delete=models.CASCADE
     )
     amount = models.IntegerField(
         validators=[
@@ -134,22 +127,47 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        verbose_name_plural = 'recipe ingredients'
+        ordering = ('recipe__name',)
 
     def __str__(self):
-        return f'{self.recipe} | {self.ingredient} | {self.amount}'
+        return f'{self.recipe}->{self.ingredient}->{self.amount}'
 
 
 class Favorite(models.Model):
     user = models.ForeignKey(
         User,
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='uniqueuser_recipe'
+            )
+        ]
+        ordering = ('recipe__name',)
+        verbose_name_plural = 'favorites'
+        default_related_name = '%(class)ss'
+
+    def __str__(self):
+        return f'{self.user}->{self.recipe}'
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
         on_delete=models.CASCADE,
-        related_name='favorite'
+        related_name='shoppingcarts'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite'
+        related_name='shoppingcarts'
     )
 
     class Meta:
@@ -159,32 +177,9 @@ class Favorite(models.Model):
                 name='unique_user_recipe'
             )
         ]
-        verbose_name_plural = 'favorites'
-
-    def __str__(self):
-        return f'{self.user} | {self.recipe}'
-
-
-class ShoppingCart(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shoppingcart'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shoppingcart'
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_shoppingcarts'
-            )
-        ]
+        ordering = ('recipe__name',)
         verbose_name_plural = 'shoppingcarts'
+        default_related_name = '%(class)ss'
 
     def __str__(self):
-        return f'{self.user} | {self.recipe}'
+        return f'{self.user}->{self.recipe}'

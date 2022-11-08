@@ -5,12 +5,14 @@ from users.models import User, Subscription
 
 
 class CustomUserAdmin(UserAdmin):
+    list_display = ('id', 'username', 'email', 'first_name',
+                    'last_name', 'is_staff')
     list_filter = ('email', 'first_name',
                    'is_staff', 'is_superuser', 'is_active')
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('subscriber', 'author')
+    list_display = ('id', 'subscriber', 'author')
 
 
 admin.site.unregister(User)

@@ -8,17 +8,17 @@ class Subscription(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='subscribers'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following',
+        related_name='authors',
         help_text='the user that others subscribe to'
     )
 
     def __str__(self):
-        return f'{self.subscriber} -> {self.author}'
+        return f'{self.subscriber} to {self.author}'
 
     class Meta:
         constraints = [
