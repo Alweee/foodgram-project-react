@@ -10,7 +10,7 @@ from djoser.views import UserViewSet
 
 from users.pagination import CustomPageNumberPagination
 from users.models import User, Subscription
-from users.serializers import CustomUserSerializer, SubscribeSerializer
+from users.serializers import CustomUserSerializer, SubscriptionSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -30,7 +30,7 @@ class SubscriptionList(APIView, CustomPageNumberPagination):
         authors = User.objects.filter(authors__subscriber=request.user)
         results = self.paginate_queryset(authors, request, view=self)
 
-        serializer = SubscribeSerializer(
+        serializer = SubscriptionSerializer(
             results,
             many=True,
             context={'request': request})
@@ -48,12 +48,13 @@ class ApiSubscription(APIView):
             subscription = Subscription.objects.create(
                 subscriber=request.user,
                 author=author)
+
         except IntegrityError:
             return Response(
                 {'errors': 'You can\'t subscribe to the author twice'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = SubscribeSerializer(
+        serializer = SubscriptionSerializer(
             subscription.author,
             context={'request': request})
 
@@ -67,6 +68,7 @@ class ApiSubscription(APIView):
                 subscriber=request.user,
                 author=author)
             subscription.delete()
+
         except ObjectDoesNotExist:
             return Response({'errors': 'You weren\'t subscribed to this user'},
                             status=status.HTTP_400_BAD_REQUEST)

@@ -3,11 +3,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-dotenv_path = Path.home().joinpath('Dev', 'foodgram-project-react', 'infra', '.env')
-
-load_dotenv(dotenv_path=dotenv_path)
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+temp_path = Path(BASE_DIR).parent.parent
+dotenv_path = Path(temp_path, 'infra')
+load_dotenv(dotenv_path=dotenv_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
@@ -28,13 +28,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -128,5 +126,3 @@ MEDIA_URL = '/media_backend/'
 MEDIA_ROOT = Path(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CORS_ORIGIN_ALLOW_ALL = True

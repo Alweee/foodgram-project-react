@@ -2,26 +2,6 @@ version: '3.3'
 
 services:
 
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ../frontend/:/app/result_build/
-
-  nginx:
-    image: nginx:1.19.3
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
-      - ../backend/foodgram/static/:/var/html/static_backend/
-      - ../backend/foodgram/media/:/var/html/media_backend/
-    depends_on:
-      - web
-
   db:
     image: postgres:13.0-alpine
     volumes:
@@ -30,12 +10,10 @@ services:
       - ./.env
 
   web:
-    build:
-      context: ../backend/foodgram/
-      dockerfile: Dockerfile
+    image: dyojinn/foodgram-backend:v1.2022
     volumes:
-      - ../backend/foodgram/static/:/app/static/
-      - ../backend/foodgram/media/:/app/media/
+      - static_backend:/app/static/
+      - media_backend:/app/media/
     ports:
       - "8000:8000"
     depends_on:
@@ -43,5 +21,26 @@ services:
     env_file:
       - ./.env
 
+  nginx:
+    image: nginx:1.19.3
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - frontend_files:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
+      - static_backend:/var/html/static_backend/
+      - media_backend:/var/html/media_backend/
+    depends_on:
+      - web
+
+  frontend:
+    image: dyojinn/foodgram-frontend:v1.2022
+    volumes:
+      - frontend_files:/app/result_build/
+
 volumes:
   postgres_data:
+  frontend_files:
+  static_backend:
+  media_backend:
