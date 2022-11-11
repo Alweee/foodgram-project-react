@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-temp_path = Path(BASE_DIR).parent.parent
-dotenv_path = Path(temp_path, 'infra')
-load_dotenv(dotenv_path=dotenv_path)
+repository_path = Path(BASE_DIR).resolve().parent.parent
+dotenv_path = Path(repository_path, 'infra', '.env').resolve()
+load_dotenv(dotenv_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
