@@ -60,5 +60,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           scripts: |
+            cd foodgram/
+            sudo docker-compose stop
+            sudo docker container rm foodgram_web_1
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
-            sudo docker
+            sudo docker-compose up -d
