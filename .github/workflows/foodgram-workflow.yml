@@ -63,7 +63,7 @@ jobs:
             cd foodgram/
             sudo docker-compose stop
             sudo docker container rm web
-            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022 --force
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
