@@ -130,3 +130,7 @@ dmypy.json
 
 # .idea
 .idea
+
+# custom
+backend/foodgram/static/
+backend/foodgram/media
