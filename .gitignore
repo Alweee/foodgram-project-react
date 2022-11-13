@@ -133,4 +133,4 @@ dmypy.json
 
 # custom
 backend/foodgram/static/
-backend/foodgram/media
+backend/foodgram/media/
