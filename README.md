@@ -7,7 +7,3 @@
 ### Документация API:
 
 [**http://158.160.9.63/api/docs/**](http://158.160.9.63/api/docs/)
-
-### Логин и пароль администратора:
-- login: admin
-- password: admin
