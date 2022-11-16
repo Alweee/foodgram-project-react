@@ -5,13 +5,13 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-repository_path = Path(BASE_DIR).resolve().parent.parent
+repository_path = Path(BASE_DIR).resolve().parent
 dotenv_path = Path(repository_path, 'infra', '.env').resolve()
 load_dotenv(dotenv_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -22,8 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users.apps.UsersConfig',
+
+    'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
+    'users.apps.UsersConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
