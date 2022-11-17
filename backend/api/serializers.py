@@ -3,25 +3,24 @@ import base64
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import AnonymousUser
 
-from rest_framework import serializers
-
 from djoser.serializers import (
-    UserCreateSerializer,
     TokenCreateSerializer,
+    UserCreateSerializer,
     UserSerializer
 )
 
+from rest_framework import serializers
+
 from recipes.models import (
-    Tag,
+    Favorite,
     Ingredient,
     Recipe,
     RecipeIngredient,
-    Favorite,
+    RecipeTag,
     ShoppingCart,
-    RecipeTag
+    Tag,
 )
-
-from users.models import User, Subscription
+from users.models import Subscription, User
 
 
 class TagSerializer(serializers.ModelSerializer):

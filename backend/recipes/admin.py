@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from recipes.models import (
-    Tag,
+    Favorite,
     Ingredient,
     Recipe,
-    RecipeTag,
     RecipeIngredient,
-    Favorite,
-    ShoppingCart
+    RecipeTag,
+    ShoppingCart,
+    Tag,
 )
 
 
@@ -22,7 +22,14 @@ class IngredientAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
+class IngredientInline(admin.TabularInline):
+    model = Recipe.ingredients.through
+    min_num = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
+    inlines = [IngredientInline,]
+
     list_display = ('id', 'name', 'author', 'is_favorite_count')
     list_filter = ('author', 'name', 'tags')
 

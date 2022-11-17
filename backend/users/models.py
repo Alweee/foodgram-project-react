@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -8,13 +8,14 @@ class Subscription(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscribers'
+        related_name='subscribers',
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='authors',
-        help_text='the user that others subscribe to'
+        verbose_name='Автор'
     )
 
     def __str__(self):
@@ -27,4 +28,4 @@ class Subscription(models.Model):
                 name='unique_subscriber_author'
             )
         ]
-        verbose_name_plural = 'subscriptions'
+        verbose_name_plural = 'Подписки'

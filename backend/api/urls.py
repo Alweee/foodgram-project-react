@@ -3,18 +3,18 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
-    TagList,
-    TagDetail,
-    IngredientList,
-    IngredientDetail,
+    ApiFavorite,
     ApiRecipe,
     ApiRecipeDetail,
-    ApiFavorite,
     ApiShoppingCart,
-    download_shopping_cart,
+    ApiSubscription,
     CustomUserViewSet,
+    download_shopping_cart,
+    IngredientDetail,
+    IngredientList,
+    TagDetail,
+    TagList,
     SubscriptionList,
-    ApiSubscription
 )
 
 

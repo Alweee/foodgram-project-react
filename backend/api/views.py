@@ -1,36 +1,36 @@
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 from django.conf import settings
-from django.db.utils import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status, permissions, filters
+from django.db.utils import IntegrityError
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 
 from djoser.views import UserViewSet
 
+from rest_framework import status, permissions, filters
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.pagination import CustomPageNumberPagination
+from api.permissions import OnlyAuthor
+from api.serializers import (
+    CustomUserSerializer,
+    IngredientSerializer,
+    RecipeInfoSerializer,
+    RecipeReadSerializer,
+    RecipeSerializer,
+    SubscriptionSerializer,
+    TagSerializer
+)
 from recipes.models import (
-    Tag,
+    Favorite,
     Ingredient,
     Recipe,
     RecipeIngredient,
-    Favorite,
     ShoppingCart,
+    Tag
 )
-from users.models import User, Subscription
-from api.serializers import (
-    TagSerializer,
-    IngredientSerializer,
-    RecipeSerializer,
-    RecipeReadSerializer,
-    CustomUserSerializer,
-    SubscriptionSerializer,
-    RecipeInfoSerializer
-)
-from api.permissions import OnlyAuthor
-from api.pagination import CustomPageNumberPagination
+from users.models import Subscription, User
 
 
 class TagList(APIView):
