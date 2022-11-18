@@ -270,7 +270,8 @@ def download_shopping_cart(request):
                  f'user_{request.user.username}\\'
                  f'shopping_cart.txt')
 
-    shoppingcart_all = ShoppingCart.objects.filter(user=request.user)
+    shoppingcart_all = ShoppingCart.objects.select_related('recipe').filter(
+        user=request.user)
 
     data = {}
 

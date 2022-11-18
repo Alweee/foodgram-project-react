@@ -93,21 +93,22 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         recipe = Recipe.objects.create(**validated_data)
 
+        recipe_tag_lst_objs = []
         for tag in tags:
-            RecipeTag.objects.create(
-                tag=tag, recipe=recipe
-            )
+            recipe_tag_lst_objs.append(RecipeTag(recipe=recipe, tag=tag))
+        RecipeTag.objects.bulk_create(recipe_tag_lst_objs)
 
+        recipe_ingredient_lst_objs = []
         for ingredient in ingredients:
             current_ingredient = Ingredient.objects.get(
                 id=ingredient['id'].id
             )
-
-            RecipeIngredient.objects.create(
+            recipe_ingredient_lst_objs.append(RecipeIngredient(
                 recipe=recipe,
                 ingredient=current_ingredient,
-                amount=ingredient['amount']
+                amount=ingredient['amount'])
             )
+        RecipeIngredient.objects.bulk_create(recipe_ingredient_lst_objs)
 
         return recipe
 
@@ -145,7 +146,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        request = self.context['request']
+        request = self.context.get('request')
         serializer = RecipeReadSerializer(
             instance,
             context={'request': request}
@@ -155,10 +156,16 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    author = serializers.SerializerMethodField()
-    ingredients = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField(method_name='get_author')
+    ingredients = serializers.SerializerMethodField(
+        method_name='get_ingredients'
+    )
+    is_favorited = serializers.SerializerMethodField(
+        method_name='get_is_favorited'
+    )
+    is_in_shopping_cart = serializers.SerializerMethodField(
+        method_name='get_is_in_shopping_cart'
+    )
     image = Base64ImageField()
 
     class Meta:
@@ -212,7 +219,9 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(
+        method_name='get_is_subscribed'
+    )
 
     class Meta:
         model = User
@@ -220,8 +229,8 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        current_user = self.context['request'].user
-        auth = self.context['request'].auth
+        current_user = self.context.get('request').user
+        auth = self.context.get('request').auth
         if not auth:
             return False
         return Subscription.objects.filter(
@@ -238,9 +247,15 @@ class RecipeInfoSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(
+        method_name='get_is_subscribed'
+    )
+    recipes = serializers.SerializerMethodField(
+        method_name='get_recipes'
+    )
+    recipes_count = serializers.SerializerMethodField(
+        method_name='get_recipes_count'
+    )
 
     class Meta:
         model = User

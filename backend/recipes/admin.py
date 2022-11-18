@@ -28,7 +28,7 @@ class IngredientInline(admin.TabularInline):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = [IngredientInline,]
+    inlines = [IngredientInline, ]
 
     list_display = ('id', 'name', 'author', 'is_favorite_count')
     list_filter = ('author', 'name', 'tags')

@@ -17,8 +17,7 @@ from api.views import (
     SubscriptionList,
 )
 
-
-urlpatterns = [
+recipes_urls = [
     path('tags/', TagList.as_view()),
     path('tags/<int:pk>/', TagDetail.as_view()),
     path('ingredients/', IngredientList.as_view()),
@@ -32,15 +31,17 @@ urlpatterns = [
          name='shopping_cart'),
 ]
 
-router_v1 = DefaultRouter()
-router_v1.register('users', CustomUserViewSet)
-
-urlpatterns += [
+users_urls = [
     path('auth/', include('djoser.urls.authtoken')),
     path('users/subscriptions/', SubscriptionList.as_view()),
     path('users/<int:pk>/subscribe/', ApiSubscription.as_view()),
 ]
 
-urlpatterns += [
+router_v1 = DefaultRouter()
+router_v1.register('users', CustomUserViewSet)
+
+router_v1_urls = [
     path('', include(router_v1.urls)),
 ]
+
+urlpatterns = recipes_urls + users_urls + router_v1_urls
