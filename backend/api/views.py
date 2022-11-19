@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from django.db.utils import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -112,8 +113,7 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
             is_favorited = int(is_favorited)
             favorite_recipes = Favorite.objects.values_list(
                 'recipe',
-                flat=True
-            )
+                flat=True)
             if is_favorited == 1:
                 recipes = recipes.filter(id__in=favorite_recipes)
 
@@ -122,8 +122,7 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
             is_in_shopping_cart = int(is_in_shopping_cart)
             shopping_cart_recipes = ShoppingCart.objects.values_list(
                 'recipe',
-                flat=True
-            )
+                flat=True)
             if is_in_shopping_cart == 1:
                 recipes = recipes.filter(id__in=shopping_cart_recipes)
 
@@ -181,7 +180,6 @@ class ApiRecipeDetail(APIView):
         current_recipe = get_object_or_404(Recipe, pk=pk)
         self.check_object_permissions(request, current_recipe)
         current_recipe.delete()
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_permissions(self):
@@ -217,13 +215,12 @@ class ApiFavorite(APIView):
             favorite = Favorite.objects.get(
                 recipe=current_recipe,
                 user=request.user)
+            favorite.delete()
 
         except ObjectDoesNotExist:
             return Response(
                 {'errors': 'Recipe not found in favorite'},
                 status=status.HTTP_400_BAD_REQUEST)
-
-        favorite.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -255,12 +252,12 @@ class ApiShoppingCart(APIView):
             shoppingcart = ShoppingCart.objects.get(
                 user=request.user,
                 recipe=current_recipe)
+            shoppingcart.delete()
 
         except ObjectDoesNotExist:
             return Response({'error': 'Recipe not found in shopping cart'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        shoppingcart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -270,30 +267,19 @@ def download_shopping_cart(request):
                  f'user_{request.user.username}\\'
                  f'shopping_cart.txt')
 
-    shoppingcart_all = ShoppingCart.objects.select_related('recipe').filter(
-        user=request.user)
-
-    data = {}
-
-    for purchase in shoppingcart_all:
-        ingredients = purchase.recipe.ingredients.all()
-
-        for ingredient in ingredients:
-            recipeingredient = RecipeIngredient.objects.get(
-                recipe=purchase.recipe,
-                ingredient=ingredient)
-
-            if ingredient.name in data.keys():
-                data[ingredient.name] += recipeingredient.amount
-            else:
-                data[ingredient.name] = recipeingredient.amount
+    user_shopping_cart = RecipeIngredient.objects.filter(
+        recipe__shoppingcarts__user=request.user).values_list(
+            'ingredient__name', 'ingredient__measurement_unit', 'amount')
+    all_count_ingredients = user_shopping_cart.values(
+        'ingredient__name', 'ingredient__measurement_unit').annotate(
+            total=Sum('amount')).order_by('-total')
 
     with open(file_path, 'w') as file:
-        for name in data.keys():
-            ingredient = Ingredient.objects.get(name=name)
-            file.write(f'{name} '
-                       f'({ingredient.measurement_unit}) - '
-                       f'{data[name]}\n')
+        for ingredient in all_count_ingredients:
+            file.write(
+                f'{ingredient["ingredient__name"]} '
+                f'({ingredient["ingredient__measurement_unit"]}) - '
+                f'{ingredient["total"]}\n')
 
     FilePointer = open(file_path, 'r')
     response = HttpResponse(FilePointer, content_type='text/plain')
@@ -359,7 +345,8 @@ class ApiSubscription(APIView):
             subscription.delete()
 
         except ObjectDoesNotExist:
-            return Response({'errors': 'You weren\'t subscribed to this user'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'You weren\'t subscribed to this user'},
+                status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
