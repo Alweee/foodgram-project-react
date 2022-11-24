@@ -64,7 +64,7 @@ jobs:
             sudo docker container rm foodgram_web_1
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:v1.2022
-            sudo touch .env
+            touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
