@@ -19,7 +19,8 @@ class Subscription(models.Model):
     )
 
     def __str__(self):
-        return f'{self.subscriber} to {self.author}'
+        return (f'{self.subscriber.username} to '
+                f'{self.author.username}')
 
     class Meta:
         constraints = [

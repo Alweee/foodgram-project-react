@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
@@ -263,9 +265,12 @@ class ApiShoppingCart(APIView):
 
 @api_view(['GET'])
 def download_shopping_cart(request):
-    file_path = (f'{settings.MEDIA_ROOT}\\'
-                 f'user_{request.user.username}\\'
-                 f'shopping_cart.txt')
+    # file_path = (f'{settings.MEDIA_ROOT}\\'
+    #              f'user_{request.user.username}\\'
+    #              f'shopping_cart.txt')
+    file_path = Path(settings.MEDIA_ROOT,
+                     'user_'+request.user.username,
+                     'shopping_cart.txt')
 
     user_shopping_cart = RecipeIngredient.objects.filter(
         recipe__shoppingcarts__user=request.user).values_list(
