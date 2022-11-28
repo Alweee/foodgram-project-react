@@ -132,6 +132,6 @@ dmypy.json
 .idea
 
 # custom
-backend/foodgram/static/
-backend/foodgram/media/
+backend/static/
+backend/media/
 .vscode/

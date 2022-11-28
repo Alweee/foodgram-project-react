@@ -18,10 +18,6 @@ class Subscription(models.Model):
         verbose_name='Автор'
     )
 
-    def __str__(self):
-        return (f'{self.subscriber.username} to '
-                f'{self.author.username}')
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -30,3 +26,7 @@ class Subscription(models.Model):
             )
         ]
         verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return (f'{self.subscriber.username} to '
+                f'{self.author.username}')

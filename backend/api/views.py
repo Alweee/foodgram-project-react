@@ -265,28 +265,26 @@ class ApiShoppingCart(APIView):
 
 @api_view(['GET'])
 def download_shopping_cart(request):
-    # file_path = (f'{settings.MEDIA_ROOT}\\'
-    #              f'user_{request.user.username}\\'
-    #              f'shopping_cart.txt')
     file_path = Path(settings.MEDIA_ROOT,
                      'user_'+request.user.username,
                      'shopping_cart.txt')
 
     user_shopping_cart = RecipeIngredient.objects.filter(
-        recipe__shoppingcarts__user=request.user).values_list(
+        recipe__shoppingcarts__user=request.user).select_related(
+            'recipe', 'ingredient').values_list(
             'ingredient__name', 'ingredient__measurement_unit', 'amount')
     all_count_ingredients = user_shopping_cart.values(
         'ingredient__name', 'ingredient__measurement_unit').annotate(
             total=Sum('amount')).order_by('-total')
 
-    with open(file_path, 'w') as file:
+    with open(file_path, 'w', encoding='utf-8') as file:
         for ingredient in all_count_ingredients:
             file.write(
                 f'{ingredient["ingredient__name"]} '
                 f'({ingredient["ingredient__measurement_unit"]}) - '
                 f'{ingredient["total"]}\n')
 
-    FilePointer = open(file_path, 'r')
+    FilePointer = open(file_path, 'r', encoding='utf-8')
     response = HttpResponse(FilePointer, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'
 
