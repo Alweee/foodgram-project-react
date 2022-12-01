@@ -269,9 +269,9 @@ def download_shopping_cart(request):
                      'user_'+request.user.username,
                      'shopping_cart.txt')
 
-    user_shopping_cart = RecipeIngredient.objects.filter(
-        recipe__shoppingcarts__user=request.user).select_related(
-            'recipe', 'ingredient').values_list(
+    user_shopping_cart = RecipeIngredient.objects.select_related(
+            'recipe', 'ingredient').filter(
+        recipe__shoppingcarts__user=request.user).values_list(
             'ingredient__name', 'ingredient__measurement_unit', 'amount')
     all_count_ingredients = user_shopping_cart.values(
         'ingredient__name', 'ingredient__measurement_unit').annotate(
