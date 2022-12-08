@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from django.db.utils import IntegrityError
+from django.forms import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -104,6 +105,9 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
         if serializer.is_valid():
             serializer.save(author=request.user)
+            if isinstance(serializer.data['cooking_time'], float):
+                raise ValidationError(
+                    'Время приголовления должно быть целым числом.')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -113,18 +117,16 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
         is_favorited = request.query_params.get('is_favorited')
         if is_favorited is not None:
             is_favorited = int(is_favorited)
-            favorite_recipes = Favorite.objects.values_list(
-                'recipe',
-                flat=True)
+            favorite_recipes = Favorite.objects.filter(
+                user=request.user).values_list('recipe', flat=True)
             if is_favorited == 1:
                 recipes = recipes.filter(id__in=favorite_recipes)
 
         is_in_shopping_cart = request.query_params.get('is_in_shopping_cart')
         if is_in_shopping_cart is not None:
             is_in_shopping_cart = int(is_in_shopping_cart)
-            shopping_cart_recipes = ShoppingCart.objects.values_list(
-                'recipe',
-                flat=True)
+            shopping_cart_recipes = ShoppingCart.objects.filter(
+                user=request.user).values_list('recipe', flat=True)
             if is_in_shopping_cart == 1:
                 recipes = recipes.filter(id__in=shopping_cart_recipes)
 

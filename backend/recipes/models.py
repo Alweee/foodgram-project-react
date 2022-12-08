@@ -86,14 +86,17 @@ class Recipe(models.Model):
         through='RecipeTag'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        validators=[
-            MinValueValidator(1, 'minimum cooking time in minutes'),
-        ],
-        verbose_name='Время приготовления в минутах'
+        default=1,
+        validators=[MinValueValidator(1, 'Значение не может быть меньше 1')],
+        verbose_name='Время готовки в минутах',
+    )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата и время публикации'
     )
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 

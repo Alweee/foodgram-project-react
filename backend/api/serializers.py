@@ -65,6 +65,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class Base64ImageField(serializers.ImageField):
+    INVALID_FILE_MESSAGE = ('Пожалуйста, загрузите допустимое изображение.')
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
