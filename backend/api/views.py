@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from django.db.utils import IntegrityError
-from django.forms import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -105,9 +104,6 @@ class ApiRecipe(APIView, CustomPageNumberPagination):
 
         if serializer.is_valid():
             serializer.save(author=request.user)
-            if isinstance(serializer.data['cooking_time'], float):
-                raise ValidationError(
-                    'Время приголовления должно быть целым числом.')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -268,7 +264,6 @@ class ApiShoppingCart(APIView):
 @api_view(['GET'])
 def download_shopping_cart(request):
     file_path = Path(settings.MEDIA_ROOT,
-                     'user_'+request.user.username,
                      'shopping_cart.txt')
 
     user_shopping_cart = RecipeIngredient.objects.select_related(
